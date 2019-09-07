@@ -117,6 +117,3 @@ class Cifar:
     def get_train_dataset(self, FLAGS):
         dataset = self.__make_tfr_dataset(FLAGS, "./train.tfrecords")
         return dataset
-
-
-#%%

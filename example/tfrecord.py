@@ -2,7 +2,7 @@
 import tensorflow as tf
 import os
 
-import cifardata as cfdata
+import datasets.cifardata as cfdata
 
 
 FLAGS = {
