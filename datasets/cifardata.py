@@ -68,8 +68,8 @@ class Cifar:
 
     def __parse_fn(self, example):
         example_fmt = {
-            "image": tf.io.FixedLenFeature((), tf.string, ""),
-            "label": tf.io.FixedLenFeature((), tf.int64, -1)
+            "image": tf.io.FixedLenFeature([], tf.string, ""),
+            "label": tf.io.FixedLenFeature([], tf.int64, -1)
         }
         parsed = tf.io.parse_single_example(example, example_fmt)
         image = tf.io.decode_image(parsed["image"])
