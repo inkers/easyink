@@ -1,7 +1,4 @@
 #%%
-import tensorflow as tf
-import os
-
 import datasets.cifardata as cfdata
 
 

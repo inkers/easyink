@@ -52,7 +52,7 @@ class Cifar:
     def __convert_to_tfrecord(self, input_files, output_file):
         """Converts a file to TFRecords."""
         print('Generating %s' % output_file)
-        with tf.python_io.TFRecordWriter(output_file) as record_writer:
+        with tf.io.TFRecordWriter(output_file) as record_writer:
             for input_file in input_files:
                 data_dict = self.__read_pickle_from_file(input_file)
                 data = data_dict[b'data']
@@ -71,7 +71,7 @@ class Cifar:
             "image": tf.io.FixedLenFeature((), tf.string, ""),
             "label": tf.io.FixedLenFeature((), tf.int64, -1)
         }
-        parsed = tf.parse_single_example(example, example_fmt)
+        parsed = tf.io.parse_single_example(example, example_fmt)
         image = tf.io.decode_image(parsed["image"])
         return image, parsed["label"]
 
