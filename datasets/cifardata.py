@@ -14,6 +14,7 @@ import tarfile
 HEIGHT = 32
 WIDTH = 32
 DEPTH = 3
+CIFAR_NUM_CLASSES = 10
 
 class Cifar:
 
@@ -70,11 +71,11 @@ class Cifar:
                 record_writer.write(example.SerializeToString())
 
     def __parse_fn(self, serialized_example):
-        features = tf.parse_single_example(
+        features = tf.io.parse_single_example(
           serialized_example,
           features={
-              'image': tf.FixedLenFeature([], tf.string),
-              'label': tf.FixedLenFeature([], tf.int64),
+              'image': tf.io.FixedLenFeature([], tf.string),
+              'label': tf.io.FixedLenFeature([], tf.int64),
           })
         image = tf.decode_raw(features['image'], tf.uint8)
         image.set_shape([DEPTH * HEIGHT * WIDTH])
@@ -84,6 +85,7 @@ class Cifar:
             tf.transpose(tf.reshape(image, [DEPTH, HEIGHT, WIDTH]), [1, 2, 0]),
             tf.float32)
         label = tf.cast(features['label'], tf.int32)
+        label = tf.one_hot(label, CIFAR_NUM_CLASSES)
         return image, label
 
     def generate_tfrecords(self):
