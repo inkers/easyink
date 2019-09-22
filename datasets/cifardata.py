@@ -24,6 +24,7 @@ class Cifar:
         else:
             self.CIFAR_DOWNLOAD_URL = CIFAR_URL
         self.CIFAR_FILENAME = self.CIFAR_DOWNLOAD_URL.split('/')[-1]
+        self.make_val_data = False
 
     def __download_data(self):
         if not os.path.isfile(self.CIFAR_FILENAME):
@@ -34,8 +35,11 @@ class Cifar:
     def _get_file_names(self):
         """Returns the file names expected to exist in the input_dir."""
         file_names = {}
-        file_names['train'] = ['data_batch_%d' % i for i in range(1, 5)]
-        file_names['validation'] = ['data_batch_5']
+        if self.make_val_data is False:
+            file_names['train'] = ['data_batch_%d' % i for i in range(1, 6)]
+        else :
+            file_names['train'] = ['data_batch_%d' % i for i in range(1, 5)]
+            file_names['validation'] = ['data_batch_5']
         file_names['eval'] = ['test_batch']
         return file_names
 
@@ -88,7 +92,8 @@ class Cifar:
         label = tf.one_hot(label, CIFAR_NUM_CLASSES)
         return image, label
 
-    def generate_tfrecords(self):
+    def generate_tfrecords(self, make_val_data=False):
+        self.make_val_data = make_val_data
         CIFAR_LOCAL_FOLDER = 'cifar-10-batches-py'
         path = self.__download_data()
         tarfile.open(os.path.join(path), 'r:gz').extractall()
@@ -120,6 +125,8 @@ class Cifar:
         return dataset
 
     def get_validation_dataset(self, FLAGS):
+        if not self.make_val_data:
+            raise Exception('validation data not created')
         dataset = self.__make_tfr_dataset(FLAGS, "./validation.tfrecords")
         return dataset
 
@@ -130,3 +137,7 @@ class Cifar:
     def get_train_dataset(self, FLAGS):
         dataset = self.__make_tfr_dataset(FLAGS, "./train.tfrecords")
         return dataset
+
+    def get_hwc(self):
+        '''returns the image dimensions'''
+        return HEIGHT, WIDTH, DEPTH

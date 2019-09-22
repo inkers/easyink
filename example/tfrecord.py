@@ -9,8 +9,8 @@ FLAGS = {
 }
 cifar = cfdata.Cifar()
 cifar.generate_tfrecords()
-dataset = cifar.get_train_dataset(FLAGS)
-
 train_dataset = cifar.get_train_dataset(FLAGS)
+
 for train_images_batch, train_labels_batch in train_dataset:
+  # check if able to loop
   break
