@@ -2,14 +2,16 @@
 # &
 # https://www.tensorflow.org/beta/guide/data_performance
 #%%
-import urllib.request
-import tensorflow as tf
-
-from six.moves import cPickle as pickle
-import sys
 import os
 import shutil
+import sys
 import tarfile
+import urllib.request
+
+import tensorflow as tf
+from six.moves import cPickle as pickle
+
+from datasets.utils import bytes_feature, int64_feature, write_as_tfrecords
 
 HEIGHT = 32
 WIDTH = 32
@@ -43,12 +45,6 @@ class Cifar:
         file_names['eval'] = ['test_batch']
         return file_names
 
-    def _int64_feature(self, value):
-        return tf.train.Feature(int64_list=tf.train.Int64List(value=[value]))
-
-    def _bytes_feature(self, value):
-        return tf.train.Feature(bytes_list=tf.train.BytesList(value=[value]))
-
     def __read_pickle_from_file(self, filename):
         with open(filename, 'rb') as f:
             if sys.version_info >= (3, 0):
@@ -60,19 +56,11 @@ class Cifar:
     def __convert_to_tfrecord(self, input_files, output_file):
         """Converts a file to TFRecords."""
         print('Generating %s' % output_file)
-        with tf.io.TFRecordWriter(output_file) as record_writer:
-            for input_file in input_files:
-                data_dict = self.__read_pickle_from_file(input_file)
-                data = data_dict[b'data']
-                labels = data_dict[b'labels']
-                num_entries_in_batch = len(labels)
-            for i in range(num_entries_in_batch):
-                example = tf.train.Example(features=tf.train.Features(
-                    feature={
-                        'image': self._bytes_feature(data[i].tobytes()),
-                        'label': self._int64_feature(labels[i])
-                    }))
-                record_writer.write(example.SerializeToString())
+        for input_file in input_files:
+            data_dict = self.__read_pickle_from_file(input_file)
+            data = data_dict[b'data']
+            labels = data_dict[b'labels']
+            write_as_tfrecords(data, labels, output_file)
 
     def __parse_fn(self, serialized_example):
         features = tf.io.parse_single_example(
@@ -84,7 +72,7 @@ class Cifar:
         image = tf.decode_raw(features['image'], tf.uint8)
         image.set_shape([DEPTH * HEIGHT * WIDTH])
 
-        # Reshape from [depth * height * width] to [depth, height, width].
+        # Reshape from [num_channels * height * width] to [width, height, num_channels].
         image = tf.cast(
             tf.transpose(tf.reshape(image, [DEPTH, HEIGHT, WIDTH]), [1, 2, 0]),
             tf.float32)
