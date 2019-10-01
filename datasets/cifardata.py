@@ -11,7 +11,7 @@ import urllib.request
 import tensorflow as tf
 from six.moves import cPickle as pickle
 
-from datasets.utils import bytes_feature, int64_feature, write_as_tfrecords
+from .utils import bytes_feature, int64_feature, write_as_tfrecords
 
 HEIGHT = 32
 WIDTH = 32
