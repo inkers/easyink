@@ -99,14 +99,15 @@ class Cifar:
         shutil.rmtree(CIFAR_LOCAL_FOLDER)
         print('Done!')
 
-    def __make_tfr_dataset(self, FLAGS, tfrecordpath):
+    def __make_tfr_dataset(self, FLAGS, tfrecordpath, repeat=True):
         files = tf.data.Dataset.list_files(tfrecordpath)
         dataset = files.interleave(
             tf.data.TFRecordDataset, cycle_length=FLAGS['num_parallel_reads'],
             num_parallel_calls=tf.data.experimental.AUTOTUNE)
         # shuffle before repeat
-        dataset = dataset.shuffle(
-            buffer_size=FLAGS['shuffle_buffer_size']).repeat()
+        dataset = dataset.shuffle(buffer_size=FLAGS['shuffle_buffer_size'])
+        if repeat:
+            dataset = dataset.repeat()
         dataset = dataset.map(map_func=self.__parse_fn,
                               num_parallel_calls=tf.data.experimental.AUTOTUNE)
         dataset = dataset.batch(batch_size=FLAGS['batch_size']).prefetch(
@@ -116,11 +117,11 @@ class Cifar:
     def get_validation_dataset(self, FLAGS):
         if not self.make_val_data:
             raise Exception('validation data not created')
-        dataset = self.__make_tfr_dataset(FLAGS, "./validation.tfrecords")
+        dataset = self.__make_tfr_dataset(FLAGS, "./validation.tfrecords", repeat=False)
         return dataset
 
     def get_eval_dataset(self, FLAGS):
-        dataset = self.__make_tfr_dataset(FLAGS, "./eval.tfrecords")
+        dataset = self.__make_tfr_dataset(FLAGS, "./eval.tfrecords", repeat=False)
         return dataset
 
     def get_train_dataset(self, FLAGS):
