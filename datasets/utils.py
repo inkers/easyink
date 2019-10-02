@@ -39,7 +39,7 @@ def parse_fn(serialized_example):
     label = tf.one_hot(label, CIFAR_NUM_CLASSES)
     return image, label
 
-def generate_tfrecords(tfrecordpath, FLAGS):
+def load_tfr_dataset(tfrecordpath, FLAGS):
     files = tf.data.Dataset.list_files(tfrecordpath)
     dataset = files.interleave(
         tf.data.TFRecordDataset, cycle_length=FLAGS['num_parallel_reads'],
@@ -49,5 +49,17 @@ def generate_tfrecords(tfrecordpath, FLAGS):
         buffer_size=FLAGS['shuffle_buffer_size']).repeat()
     dataset = dataset.map(map_func=parse_fn,
                             num_parallel_calls=tf.data.experimental.AUTOTUNE)
-    dataset = dataset.batch(batch_size=FLAGS['batch_size'])
+    dataset = dataset.batch(batch_size=FLAGS['batch_size']).prefetch(
+        buffer_size=tf.data.experimental.AUTOTUNE)
+    return dataset
+
+def load_dataset_np(X, Y, FLAGS):
+    dataset = tf.data.Dataset.from_tensor_slices((X, Y))
+    dataset = dataset.shuffle(
+        buffer_size=FLAGS['shuffle_buffer_size']).repeat()
+    dataset = dataset.map(lambda x, y: (tf.div(tf.cast(x, tf.float32), 255.0), tf.reshape(tf.one_hot(y, 10), (-1, 10))))
+    dataset = dataset.map(lambda x, y: (tf.image.random_flip_left_right(x), y))
+    
+    dataset = dataset.batch(batch_size=FLAGS['batch_size']).prefetch(
+        buffer_size=tf.data.experimental.AUTOTUNE)
     return dataset

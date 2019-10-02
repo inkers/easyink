@@ -1,6 +1,9 @@
 #%%
-import datasets.cifardata as cfdata
+import matplotlib.gridspec as gridspec
+import matplotlib.pyplot as plt
+import numpy as np
 
+import datasets.cifardata as cfdata
 
 FLAGS = {
     'shuffle_buffer_size': 100,

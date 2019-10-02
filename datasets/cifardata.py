@@ -109,7 +109,8 @@ class Cifar:
             buffer_size=FLAGS['shuffle_buffer_size']).repeat()
         dataset = dataset.map(map_func=self.__parse_fn,
                               num_parallel_calls=tf.data.experimental.AUTOTUNE)
-        dataset = dataset.batch(batch_size=FLAGS['batch_size'])
+        dataset = dataset.batch(batch_size=FLAGS['batch_size']).prefetch(
+            buffer_size=tf.data.experimental.AUTOTUNE)
         return dataset
 
     def get_validation_dataset(self, FLAGS):
